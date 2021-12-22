@@ -184,8 +184,16 @@ def get_hs_stock_symbols() -> list:
 
     def _get_symbol():
         _res = set()
+
+        # proxy_port = 10809
+        # proxy = '127.0.0.1:' + str(proxy_port)
+        # proxies = {
+        #     'http': 'http://' + proxy,
+        #     'https': 'https://' + proxy,
+        # }
+
         for _k, _v in (("ha", "ss"), ("sa", "sz"), ("gem", "sz")):
-            resp = requests.get(HS_SYMBOLS_URL.format(s_type=_k))
+            resp = requests.get(HS_SYMBOLS_URL.format(s_type=_k), )
             _res |= set(
                 map(
                     lambda x: "{}.{}".format(re.findall(r"\d+", x)[0], _v),
