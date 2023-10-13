@@ -7,8 +7,8 @@ data_loader_config: &data_loader_config
   module_path: qlib.data.dataset.loader
   kwargs:
     config:
-      feature: data/feature.pkl
-      label: data/label.pkl
+      feature: examples/benchmarks/TRA/data/feature.pkl
+      label: examples/benchmarks/TRA/data/label.pkl
 
 model_config: &model_config
   input_size: 16
@@ -29,24 +29,24 @@ tra_config: &tra_config
 task:
   model:
     class: TRAModel
-    module_path: src/model.py
+    module_path: examples/benchmarks/TRA/src/model.py
     kwargs:
       lr: 0.0001
       n_epochs: 500
       max_steps_per_epoch: 100
       early_stop: 20
       seed: 1000
-      logdir: output/test/alstm_tra
+      logdir: examples/benchmarks/TRA/output/test/alstm_tra
       model_type: LSTM
       model_config: *model_config
       tra_config: *tra_config
       lamb: 2.0
       rho: 0.99
       freeze_model: True
-      model_init_state: output/test/alstm_tra_init/model.bin
+      model_init_state: examples/benchmarks/TRA/output/test/alstm_tra_init/model.bin
   dataset:
     class: MTSDatasetH
-    module_path: src/dataset.py
+    module_path: examples/benchmarks/TRA/src/dataset.py
     kwargs:
       handler:
         class: DataHandler

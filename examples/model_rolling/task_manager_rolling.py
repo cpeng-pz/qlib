@@ -26,7 +26,7 @@ class RollingTaskExample:
         self,
         provider_uri="~/.qlib/qlib_data/cn_data",
         region=REG_CN,
-        task_url="mongodb://10.0.0.4:27017/",
+        task_url="mongodb://localhost:27017/",
         task_db_name="rolling_db",
         experiment_name="rolling_exp",
         task_pool=None,  # if user want to  "rolling_task"
@@ -101,7 +101,10 @@ class RollingTaskExample:
             rec_key_func=rec_key,
             rec_filter_func=my_filter,
         )
-        print(collector())
+
+        collect_dict = collector()
+
+        print(collect_dict)
 
     def main(self):
         self.reset()

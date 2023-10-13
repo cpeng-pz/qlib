@@ -61,14 +61,14 @@ if __name__ == "__main__":
 
     # NOTE: This line is optional
     # It demonstrates that the dataset can be used standalone.
-    example_df = dataset.prepare("train")
+    example_df = dataset.prepare("train") # TODO 试一下用valid和test有啥区别（看里面）
     print(example_df.head())
 
     # start exp
-    with R.start(experiment_name="workflow"):
+    with R.start(experiment_name="workflow"): # TODO workflow也还不太懂
         R.log_params(**flatten_dict(CSI300_GBDT_TASK))
         model.fit(dataset)
-        R.save_objects(**{"params.pkl": model})
+        R.save_objects(**{"params.pkl": model}) # TODO 再看一下是save到哪里去了 # 默认有一个artifact dir，但是可以用artifact_path指定保存到哪里
 
         # prediction
         recorder = R.get_recorder()
