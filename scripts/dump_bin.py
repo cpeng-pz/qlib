@@ -38,7 +38,7 @@ class DumpDataBase:
         qlib_dir: str,
         backup_dir: str = None,
         freq: str = "day",
-        max_workers: int = 16,
+        max_workers: int = 4,
         date_field_name: str = "date",
         file_suffix: str = ".csv",
         symbol_field_name: str = "symbol",
@@ -195,7 +195,7 @@ class DumpDataBase:
     def data_merge_calendar(self, df: pd.DataFrame, calendars_list: List[pd.Timestamp]) -> pd.DataFrame:
         # calendars
         calendars_df = pd.DataFrame(data=calendars_list, columns=[self.date_field_name])
-        calendars_df[self.date_field_name] = calendars_df[self.date_field_name].astype(np.datetime64)
+        calendars_df[self.date_field_name] = calendars_df[self.date_field_name].astype('datetime64[ns]')
         cal_df = calendars_df[
             (calendars_df[self.date_field_name] >= df[self.date_field_name].min())
             & (calendars_df[self.date_field_name] <= df[self.date_field_name].max())
@@ -271,24 +271,44 @@ class DumpDataBase:
 
 
 class DumpDataAll(DumpDataBase):
+    # def _get_all_date(self):
+    #     logger.info("start get all date......")
+    #     all_datetime = set()
+    #     date_range_list = []
+    #     _fun = partial(self._get_date, as_set=True, is_begin_end=True)
+    #     with tqdm(total=len(self.csv_files)) as p_bar:
+    #         with ProcessPoolExecutor(max_workers=self.works) as executor:
+    #             for file_path, ((_begin_time, _end_time), _set_calendars) in zip(
+    #                 self.csv_files, executor.map(_fun, self.csv_files)
+    #             ):
+    #                 all_datetime = all_datetime | _set_calendars
+    #                 if isinstance(_begin_time, pd.Timestamp) and isinstance(_end_time, pd.Timestamp):
+    #                     _begin_time = self._format_datetime(_begin_time)
+    #                     _end_time = self._format_datetime(_end_time)
+    #                     symbol = self.get_symbol_from_file(file_path)
+    #                     _inst_fields = [symbol.upper(), _begin_time, _end_time]
+    #                     date_range_list.append(f"{self.INSTRUMENTS_SEP.join(_inst_fields)}")
+    #                 p_bar.update()
+    #     self._kwargs["all_datetime_set"] = all_datetime
+    #     self._kwargs["date_range_list"] = date_range_list
+    #     logger.info("end of get all date.\n")
+
     def _get_all_date(self):
         logger.info("start get all date......")
         all_datetime = set()
         date_range_list = []
         _fun = partial(self._get_date, as_set=True, is_begin_end=True)
         with tqdm(total=len(self.csv_files)) as p_bar:
-            with ProcessPoolExecutor(max_workers=self.works) as executor:
-                for file_path, ((_begin_time, _end_time), _set_calendars) in zip(
-                    self.csv_files, executor.map(_fun, self.csv_files)
-                ):
-                    all_datetime = all_datetime | _set_calendars
-                    if isinstance(_begin_time, pd.Timestamp) and isinstance(_end_time, pd.Timestamp):
-                        _begin_time = self._format_datetime(_begin_time)
-                        _end_time = self._format_datetime(_end_time)
-                        symbol = self.get_symbol_from_file(file_path)
-                        _inst_fields = [symbol.upper(), _begin_time, _end_time]
-                        date_range_list.append(f"{self.INSTRUMENTS_SEP.join(_inst_fields)}")
-                    p_bar.update()
+            for file_path in self.csv_files:
+                ((_begin_time, _end_time), _set_calendars) = _fun(file_path)
+                all_datetime = all_datetime | _set_calendars
+                if isinstance(_begin_time, pd.Timestamp) and isinstance(_end_time, pd.Timestamp):
+                    _begin_time = self._format_datetime(_begin_time)
+                    _end_time = self._format_datetime(_end_time)
+                    symbol = self.get_symbol_from_file(file_path)
+                    _inst_fields = [symbol.upper(), _begin_time, _end_time]
+                    date_range_list.append(f"{self.INSTRUMENTS_SEP.join(_inst_fields)}")
+                p_bar.update()
         self._kwargs["all_datetime_set"] = all_datetime
         self._kwargs["date_range_list"] = date_range_list
         logger.info("end of get all date.\n")
@@ -308,11 +328,20 @@ class DumpDataAll(DumpDataBase):
         logger.info("start dump features......")
         _dump_func = partial(self._dump_bin, calendar_list=self._calendars_list)
         with tqdm(total=len(self.csv_files)) as p_bar:
-            with ProcessPoolExecutor(max_workers=self.works) as executor:
-                for _ in executor.map(_dump_func, self.csv_files):
-                    p_bar.update()
-
+            for file in self.csv_files:
+                _dump_func(file)
+                p_bar.update()
         logger.info("end of features dump.\n")
+
+    # def _dump_features(self):
+    #     logger.info("start dump features......")
+    #     _dump_func = partial(self._dump_bin, calendar_list=self._calendars_list)
+    #     with tqdm(total=len(self.csv_files)) as p_bar:
+    #         with ProcessPoolExecutor(max_workers=self.works) as executor:
+    #             for _ in executor.map(_dump_func, self.csv_files):
+    #                 p_bar.update()
+
+    #     logger.info("end of features dump.\n")
 
     def dump(self):
         self._get_all_date()

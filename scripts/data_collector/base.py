@@ -142,6 +142,11 @@ class BaseCollector(abc.ABC):
         """
         self.sleep()
         df = self.get_data(symbol, self.interval, self.start_datetime, self.end_datetime)
+        if not df.empty:
+            if df['symbol'][0]=='600004.ss':
+                print("pause")
+            if (pd.to_datetime(df['date'],utc=True).dt.hour != 0).any():
+                print("pause")
         _result = self.NORMAL_FLAG
         if self.check_data_length > 0:
             _result = self.cache_small_data(symbol, df)
@@ -210,6 +215,8 @@ class BaseCollector(abc.ABC):
         for _symbol, _df_list in self.mini_symbol_map.items():
             _df = pd.concat(_df_list, sort=False)
             if not _df.empty:
+                # TODO 先把date中的日间时间和时区去掉了，只保留日期，然后才保存
+                # TODO
                 self.save_instrument(_symbol, _df.drop_duplicates(["date"]).sort_values(["date"]))
         if self.mini_symbol_map:
             logger.warning(f"less than {self.check_data_length} instrument list: {list(self.mini_symbol_map.keys())}")
@@ -311,11 +318,19 @@ class Normalize:
     def normalize(self):
         logger.info("normalize data......")
 
-        with ProcessPoolExecutor(max_workers=self._max_workers) as worker:
-            file_list = list(self._source_dir.glob("*.csv"))
-            with tqdm(total=len(file_list)) as p_bar:
-                for _ in worker.map(self._executor, file_list):
-                    p_bar.update()
+        # with ProcessPoolExecutor(max_workers=self._max_workers) as worker:
+        #     file_list = list(self._source_dir.glob("*.csv"))
+        #     with tqdm(total=len(file_list)) as p_bar:
+        #         for _ in worker.map(self._executor, file_list):
+        #             p_bar.update()
+        
+        # pz - DEBUG
+        # 直接跑这段代码好像比上面的还快
+        file_list = list(self._source_dir.glob("*.csv"))
+        with tqdm(total=len(file_list)) as p_bar:
+            for file in file_list:
+                self._executor(file)
+                p_bar.update()
 
 
 class BaseRun(abc.ABC):

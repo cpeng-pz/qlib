@@ -571,8 +571,14 @@ class YahooNormalize1dExtend(YahooNormalize1d):
         _last_date = self._get_last_date(df)
         if _last_date is not None:
             df = df.set_index(self._date_field_name)
-            df.index = pd.to_datetime(df.index)
+            # df.index = pd.to_datetime(df.index)
+            
+             #去掉日内时间和时区等信息，好和self._calendar_list中的日期匹配
+            df = df.set_index(pd.to_datetime(df.index,utc=True).date)
+            df.index.name = self._date_field_name
+
             df = df[~df.index.duplicated(keep="first")]
+
             _max_date = df.index.max()
             df = df.reindex(self._calendar_list).loc[:_max_date].reset_index()
             df = df[df[self._date_field_name] > _last_date]
@@ -986,6 +992,31 @@ class Run(BaseRun):
             $ python collector.py download_data --source_dir ~/.qlib/stock_data/source --region CN --start 2020-11-01 --end 2020-11-10 --delay 0.1 --interval 1m
         """
         super(Run, self).download_data(max_collector_count, delay, start, end, check_data_length, limit_nums)
+        # TODO 把source里面那些csv里面的日内时间都去掉
+
+    # Remove intra-day time
+    def modify_csv_files(
+            self, 
+            date_field_name: str = "date",
+        ):
+        import os, glob
+        from tqdm import tqdm
+        file_paths = glob.glob(os.path.join(self.source_dir, '*.csv'))
+        total_files = len(file_paths)
+        for file_path in tqdm(file_paths, total=total_files, desc='Processing files'):
+            df = pd.read_csv(file_path)
+            df['date'] = pd.to_datetime(df[date_field_name], utc=True).dt.date
+            df.to_csv(file_path, index=False)
+
+    # def remove_intraday_time(self):
+    #     import os
+    #     # 修改self.source_dir中的所有.csv文件中的'date'列，把日内时间和时区信息去掉，只保留日期，其它不变
+    #     for file_name in os.listdir(self.source_dir):
+    #         if file_name.endswith('.csv'):
+    #             file_path = os.path.join(self.source_dir, file_name)
+    #             df = pd.read_csv(file_path)
+    #             df['date'] = pd.to_datetime(df['date'], utc=True).dt.date
+    #             df.to_csv(file_path, index=False)
 
     def normalize_data(
         self,
