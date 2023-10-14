@@ -18,6 +18,7 @@ from qlib.data.dataset.handler import DataHandlerLP
 from qlib.log import get_module_logger
 from qlib.model.base import Model
 from qlib.utils import get_or_create_path
+from qlib.base.get_split_time import get_split_time
 
 
 class ADARNN(Model):
@@ -246,6 +247,7 @@ class ADARNN(Model):
         evals_result=dict(),
         save_path=None,
     ):
+
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
             col_set=["feature", "label"],
@@ -253,7 +255,12 @@ class ADARNN(Model):
         )
         #  splits = ['2011-06-30']
         days = df_train.index.get_level_values(level=0).unique()
-        train_splits = np.array_split(days, self.n_splits)
+        # train_splits = np.array_split(days, self.n_splits)
+        df_splits = df_train['feature'][["close","change","high","open","volume","factor","low"]]
+        train_splits = get_split_time(days, self.n_splits, df_splits)
+        # 删除 'close' 和 'open'等列
+        df_train.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
+        df_valid.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
         train_splits = [df_train[s[0] : s[-1]] for s in train_splits]
         train_loader_list = [get_stock_loader(df, self.batch_size) for df in train_splits]
 
@@ -306,6 +313,7 @@ class ADARNN(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
         x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test.drop(columns=["close","change","high","open","volume","factor","low"], inplace=True)
         return self.infer(x_test)
 
     def infer(self, x_test):
@@ -317,6 +325,7 @@ class ADARNN(Model):
         preds = []
 
         for begin in range(sample_num)[:: self.batch_size]:
+
             if sample_num - begin < self.batch_size:
                 end = sample_num
             else:
@@ -343,6 +352,7 @@ class data_loader(Dataset):
     def __init__(self, df):
         self.df_feature = df["feature"]
         self.df_label_reg = df["label"]
+        
         self.df_index = df.index
         self.df_feature = torch.tensor(
             self.df_feature.values.reshape(-1, 6, 60).transpose(0, 2, 1), dtype=torch.float32
