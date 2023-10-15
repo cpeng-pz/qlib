@@ -255,14 +255,14 @@ class ADARNN(Model):
         #  splits = ['2011-06-30']
         days = df_train.index.get_level_values(level=0).unique()
         # 1.qlib里面的平均分方式
-        # train_splits = np.array_split(days, self.n_splits)
+        train_splits = np.array_split(days, self.n_splits)
         
-        df_splits = df_train['feature'][["close","change","high","open","volume","factor","low"]]
+        # df_splits = df_train['feature'][["close","change","high","open","volume","factor","low"]]
         
         # 2.adarnn源码方式
         # train_splits = adarnn_get_split_time(days, self.n_splits, df_splits)
         # 3.nevergrad分段方式
-        train_splits = nevergrad_get_split_time(days, self.n_splits, df_splits)
+        # train_splits = nevergrad_get_split_time(days, self.n_splits, df_splits)
         # 删除 "close","change","high","open","volume","factor","low"列
         df_train.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
         df_valid.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
