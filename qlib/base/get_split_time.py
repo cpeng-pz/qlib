@@ -37,6 +37,7 @@ def get_split_time(ary, indices_or_sections, df, axis=0):
     
 
     def objective_function(time_division, dis_type = 'coral',):
+        start = 0
         selected = [0, SPLIT_N]
 
         while len(selected) -2 < indices_or_sections -1:
