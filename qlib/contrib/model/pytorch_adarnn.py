@@ -18,6 +18,7 @@ from qlib.data.dataset.handler import DataHandlerLP
 from qlib.log import get_module_logger
 from qlib.model.base import Model
 from qlib.utils import get_or_create_path
+from qlib.base.get_split_time import get_split_time
 
 
 class ADARNN(Model):
