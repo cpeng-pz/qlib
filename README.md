@@ -172,6 +172,8 @@ Also, users can install the latest dev version ``Qlib`` by the source code accor
 
 **Tips**: If you fail to install `Qlib` or run the examples in your environment,  comparing your steps and the [CI workflow](.github/workflows/test_qlib_from_source.yml) may help you find the problem.
 
+**Tips for Mac**: If you are using Mac with M1, you might encounter issues in building the wheel for LightGBM, which is due to missing dependencies from OpenMP. To solve the problem, install openmp first with ``brew install libomp`` and then run ``pip install .`` to build it successfully. 
+
 ## Data Preparation
 Load and prepare data by running the following code:
 
@@ -321,7 +323,7 @@ Qlib provides a tool named `qrun` to run the whole workflow automatically (inclu
 The automatic workflow may not suit the research workflow of all Quant researchers. To support a flexible Quant research workflow, Qlib also provides a modularized interface to allow researchers to build their own workflow by code. [Here](examples/workflow_by_code.ipynb) is a demo for customized Quant research workflow by code.
 
 # Main Challenges & Solutions in Quant Research
-Quant investment is an very unique scenario with lots of key challenges to be solved.
+Quant investment is a very unique scenario with lots of key challenges to be solved.
 Currently, Qlib provides some solutions for several of them.
 
 ## Forecasting: Finding Valuable Signals/Patterns
