@@ -97,8 +97,8 @@ class Alpha360(DataHandlerLP):
         # are normalized by the latest price and volume data ( dividing by $close, $volume)
         # So the latest normalized $close will be 1 (with name CLOSE0), the latest normalized $volume will be 1 (with name VOLUME0)
         # If further normalization are executed (e.g. centralization),  CLOSE0 and VOLUME0 will be 0.
-        fields = []
-        names = []
+        fields = ["$close","$change","$high","$open","$volume","$factor","$low"]
+        names = ["close","change","high","open","volume","factor","low"]
 
         for i in range(59, 0, -1):
             fields += ["Ref($close, %d)/$close" % i]

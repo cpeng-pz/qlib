@@ -347,7 +347,15 @@ class SigAnaRecord(ACRecordTemp):
             )
         self.recorder.log_metrics(**metrics)
         pprint(metrics)
+        import json
+        # 指定保存文件的路径
+        file_path = r"C:\Users\hehailing\Desktop\实验\metrics.json"
+
+        # 使用json.dump()将字典保存到文件
+        with open(file_path, 'a') as file:
+            json.dump(metrics, file, indent=4)  # indent参数用于指定缩进，使文件更易读
         return objects
+
 
     def list(self):
         paths = ["ic.pkl", "ric.pkl"]

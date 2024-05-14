@@ -18,7 +18,8 @@ from qlib.data.dataset.handler import DataHandlerLP
 from qlib.log import get_module_logger
 from qlib.model.base import Model
 from qlib.utils import get_or_create_path
-
+from qlib.base.adarnn_get_split_time import adarnn_get_split_time
+from qlib.base.nevergrad_get_split_time import nevergrad_get_split_time
 
 class ADARNN(Model):
     """ADARNN Model
@@ -253,7 +254,18 @@ class ADARNN(Model):
         )
         #  splits = ['2011-06-30']
         days = df_train.index.get_level_values(level=0).unique()
+        # 1.qlib里面的平均分方式
         train_splits = np.array_split(days, self.n_splits)
+        
+        # df_splits = df_train['feature'][["close","change","high","open","volume","factor","low"]]
+        
+        # 2.adarnn源码方式
+        # train_splits = adarnn_get_split_time(days, self.n_splits, df_splits)
+        # 3.nevergrad分段方式
+        # train_splits = nevergrad_get_split_time(days, self.n_splits, df_splits)
+        # 删除 "close","change","high","open","volume","factor","low"列
+        df_train.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
+        df_valid.drop(columns=[('feature', 'close'), ('feature', 'open'),('feature', 'change'),('feature','high'),('feature','volume'),('feature','factor'),('feature','low')], inplace=True)
         train_splits = [df_train[s[0] : s[-1]] for s in train_splits]
         train_loader_list = [get_stock_loader(df, self.batch_size) for df in train_splits]
 
@@ -306,6 +318,7 @@ class ADARNN(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
         x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test.drop(columns=["close","change","high","open","volume","factor","low"], inplace=True)
         return self.infer(x_test)
 
     def infer(self, x_test):
